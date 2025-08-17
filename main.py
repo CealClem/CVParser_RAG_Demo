@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session
+import os
 import pandas as pd
 from openai_adapter import OpenAILLMClient
 from ollama_adapter import OllamaLLMClient
@@ -148,4 +149,4 @@ def rag_demo():
     return render_template('rag_demo.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
