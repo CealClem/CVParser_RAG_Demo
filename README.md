@@ -37,7 +37,7 @@ A comprehensive web application that demonstrates Retrieval-Augmented Generation
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/CealClem/CVParser_RAG_Demo.git
    cd CV-Extractor-RAG
    ```
 
@@ -158,22 +158,11 @@ Contributions are welcome! This project is designed to be educational, so clear 
 - Add type hints where appropriate
 - Write clear, educational comments
 
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
 ## 🙏 Acknowledgments
 
 - OpenAI for providing the embedding and language model APIs
 - The open-source community for the libraries and tools used
 - Educational resources that inspired the RAG implementation approach
 
-## 📞 Support
-
-- **Issues**: Report bugs and feature requests via GitHub Issues
-- **Discussions**: Join conversations about RAG concepts and improvements
-- **Documentation**: Check the code comments and inline explanations
-
 ---
-
 **Happy Learning! 🎓** This project aims to make RAG concepts accessible and practical. Feel free to explore, experiment, and contribute to making AI more understandable for everyone.
