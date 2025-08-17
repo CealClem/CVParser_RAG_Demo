@@ -89,7 +89,7 @@ def rag_process():
         session['cv_text'] = cv_text
         
         # Step 1: Chunk the document
-        chunks = rag_service.chunk_document(cv_text, chunk_size=200, overlap=50)
+        chunks = rag_service.chunk_document(cv_text, chunk_size=100, overlap=50)
         
         # Step 2: Generate embeddings
         embeddings = rag_service.generate_embeddings(chunks)

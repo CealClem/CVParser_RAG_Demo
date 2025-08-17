@@ -21,7 +21,7 @@ class RAGService:
         self.embeddings = []
         self.chunk_metadata = []
         
-    def chunk_document(self, text: str, chunk_size: int = 100, overlap: int = 50) -> List[Dict[str, Any]]:
+    def chunk_document(self, text: str, chunk_size: int = 200, overlap: int = 50) -> List[Dict[str, Any]]:
         """
         Split document into overlapping chunks with metadata
         Optimized for CV documents which are typically shorter and more structured
