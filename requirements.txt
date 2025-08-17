@@ -9,3 +9,6 @@ python-dotenv>=1.0.0
 requests>=2.31.0
 langchain-community>=0.0.10
 gunicorn>=21.2.0
+ollama>=0.1.0
+outlines>=0.0.20
+scaleway>=0.0.1
