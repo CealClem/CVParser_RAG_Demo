@@ -1,0 +1,169 @@
+following the following structure exactly, please extract the data from the CV:
+Example input cv: "
+CELIA CLEMENTS
+F U L L S T A C K S O F T W A R E D E V E L O P E R C E L I A C L E M E N T S @ H O T M A I L . C O . U K
++ 3 3 6 8 1 7 2 1 4 9 8
+W I T H A B A C K G R O U N D I N D A T A
+P R O F E S S I O N A L E X P E R I E N C E
+Intuition Software - Full-Stack Python Developer
+NOVEMBER 2020 - PRESENT
+Led a comprehensive modernisation of the JobAffinity ATS web app interface:
+Conducted R&D for data exploration, clustering, and transformation, testing on 5,000 CVs with a BART text-to-
+JSON model.
+Created an in-house CV extraction system with LLMs, saving €10,000 annually
+Built a job validation module based on hexagonal architecture for efficient job approval workflows.
+Developed key features such as a calendar system, one-click rejection, and customisable notifications with
+adjustable colour schemes.
+Played a crucial role in providing robust technical support & proficiently refactored legacy code into optimised
+and reusable modules.
+Technology used: Python, CSS, javascript, Flask, MySql, XML, Docker, Bootstrap
+DXC Technology - Data AI Engineer
+JULY 2019 - SEPTEMBER 2020
+Orange - analysis of 400 shops' data:
+Prediction of phone accessory sales using time series algorithms - LSTM
+Preprocessing of a large dataset of 5 million lines & data visualisation - Python and pandas
+DXC - Job market analysis:
+Vacant jobs in 2019 in 5 French cities. Web scraping of Indeed.fr using Python
+Data extraction: Job title, role, skills needed, salary, experience (Regex, NLTK, Spacy)
+Salary Prediction using machine learning models : SVM and Random Forest
+Chatbots:
+DXC - FAQ Corona Virus Chatbot: Microsoft QnA Maker & customisation in C# for internal use at DXC
+Microsoft Demo Chatbot for the Microsoft Envision event: Microsoft Bot Framework in C# & bar code scanner &
+Microsoft cognitive services : LUIS
+Telephone Voicebot: Coding from scratch a voicebot capable of calling phone numbers, asking a series of
+questions and saving the answers - Using Python, Twilio, Dialogflow, MongoDB
+DXC - Chatbot for meeting room reservation: From scratch Machine Learning for intent and entity detection,
+vectorisation, text pre-processing (NLTK, Spacy)
+ACOSS (Social Security Agency France) : Chatbot using the Microsoft Bot Framework in C# & Microsoft cognitive
+services : LUIS. Aim: to alleviate the number of calls to the help desk by treating 6 common use cases.
+E D U C A T I O N A L H I S T O R Y
+Bootcamp - Data AI Developer - Microsoft AI School/Simplon, 2018-2019
+7 month intensive program: Coding, Maths (Statistics, Propabilities), Deep Learning, soft skills training etc.
+Many practical projects. For example: Text generation with deep learning (RNN, LSTM)
+Degree in Computational Linguistics (NLP) at Université Paris Diderot, 2017-2018
+Java, Python, XML, Corpus Linguistics, Algorithms, Word Embeddings, Text Mining, Named Entity Recognition, all
+aspects of linguistics (from phonology to semantics)
+Projects: KNN Algorithm from scratch + Predictive Text / Autocompletion: Threading + NLP Techniques (N-grammes,
+Trie) on a corpus of 80000 SMS
+Degree in Japanese at Université Paris Diderot, 2014-2017
+Japanese Language and Culture, Sociology, Literature, Political History, The World of Work in Japan, History of
+Science in China and Japan, History of Religion in Japan, Journalistic Translation
+S K I L L S
+Languages: English (native), French (fluent), Japanese (proficient), German (basic), Arabic (basic)
+Coding Languages: Python, Java, Javascript, R, C#, HTML, SQL, MongoDB, Spark, CSS
+Other: Azure, Dialogflow, Rasa, Power BI, Tableau, Tensorflow, Keras, Web Scraping, Docker, Regex
+C E R T I F I C A T I O N S
+Microsoft Azure Data Scientist DP100 (2020)
+Microsoft Azure AI Solutions AI100 (2020)
+Scrum Foundations Professional Certificate - Certiprof (2020)
+Agile Methodologies and Project Management - Simplon (2020)"
+
+Example return JSON for above CV:
+    {{
+        "identity": [
+            {{"first_name": "Celia",
+            "last_name": "Clements",
+            "email": "celiaclements@hotmail.co.uk",
+            "phone": "+33681721498",
+            "address": "",
+            "postal_code": "",
+            "town": "",
+            "country": ""}}
+        ],
+        "employments": [
+            {{
+                "start_date": datetime.date(2020, 11, 1),
+                "end_date": None,
+                "title": "Full-Stack Python Developer",
+                "employer": "Intuition Software",
+                "description": "Led a comprehensive modernisation of the JobAffinity ATS web app interface: Conducted R&D for data exploration, clustering, and transformation, testing on 5,000 CVs with a BART text-to-JSON model. Created an in-house CV extraction system with LLMs, saving €10,000 annually. Built a job validation module based on hexagonal architecture for efficient job approval workflows. Developed key features such as a calendar system, one-click rejection, and customisable notifications with adjustable colour schemes. Played a crucial role in providing robust technical support & proficiently refactored legacy code into optimised and reusable modules. Technology used: Python, CSS, JavaScript, Flask, MySQL, XML, Docker, Bootstrap."
+            }},
+            {{
+                "start_date": datetime.date(2019, 7, 1),
+                "end_date": datetime.date(2020, 9, 30),
+                "title": "Data AI Engineer",
+                "employer": "DXC Technology",
+                "description": "Orange - analysis of 400 shops' data: Prediction of phone accessory sales using time series algorithms - LSTM. Preprocessing of a large dataset of 5 million lines & data visualisation - Python and pandas. DXC - Job market analysis: Vacant jobs in 2019 in 5 French cities. Web scraping of Indeed.fr using Python. Data extraction: Job title, role, skills needed, salary, experience (Regex, NLTK, Spacy). Salary Prediction using machine learning models: SVM and Random Forest. Chatbots: DXC - FAQ Corona Virus Chatbot: Microsoft QnA Maker & customisation in C# for internal use at DXC. Microsoft Demo Chatbot for the Microsoft Envision event: Microsoft Bot Framework in C# & bar code scanner & Microsoft cognitive services: LUIS. Telephone Voicebot: Coding from scratch a voicebot capable of calling phone numbers, asking a series of questions and saving the answers - Using Python, Twilio, Dialogflow, MongoDB. DXC - Chatbot for meeting room reservation: From scratch Machine Learning for intent and entity detection, vectorisation, text pre-processing (NLTK, Spacy). ACOSS (Social Security Agency France): Chatbot using the Microsoft Bot Framework in C# & Microsoft cognitive services: LUIS. Aim: to alleviate the number of calls to the help desk by treating 6 common use cases."
+            }}
+        ],
+        "educations": [
+            {{
+                "start_date": datetime.date(2018, 9, 1),
+                "end_date": datetime.date(2019, 3, 31),
+                "title": "Bootcamp - Data AI Developer",
+                "institution": "Microsoft AI School/Simplon",
+                "level_code": "",
+                "description": "7 month intensive program: Coding, Maths (Statistics, Probabilities), Deep Learning, soft skills training etc. Many practical projects. For example: Text generation with deep learning (RNN, LSTM)"
+            }},
+            {{
+                "start_date": datetime.date(2017, 9, 1),
+                "end_date": datetime.date(2018, 6, 30),
+                "title": "Degree in Computational Linguistics (NLP)",
+                "institution": "Université Paris Diderot",
+                "level_code": "",
+                "description": "Java, Python, XML, Corpus Linguistics, Algorithms, Word Embeddings, Text Mining, Named Entity Recognition, all aspects of linguistics (from phonology to semantics). Projects: KNN Algorithm from scratch + Predictive Text / Autocompletion: Threading + NLP Techniques (N-grammes, Trie) on a corpus of 80000 SMS"
+            }},
+            {{
+                "start_date": datetime.date(2014, 9, 1),
+                "end_date": datetime.date(2017, 6, 30),
+                "title": "Degree in Japanese",
+                "institution": "Université Paris Diderot",
+                "level_code": "",
+                "description": "Japanese Language and Culture, Sociology, Literature, Political History, The World of Work in Japan, History of Science in China and Japan, History of Religion in Japan, Journalistic Translation"
+            }}
+        ],
+        "skills": [
+            {"name": "Python", "level_code": ""},
+            {"name": "Java", "level_code": ""},
+            {"name": "JavaScript", "level_code": ""},
+            {"name": "R", "level_code": ""},
+            {"name": "C#", "level_code": ""},
+            {"name": "HTML", "level_code": ""},
+            {"name": "SQL", "level_code": ""},
+            {"name": "MongoDB", "level_code": ""},
+            {"name": "Spark", "level_code": ""},
+            {"name": "CSS", "level_code": ""},
+            {"name": "Azure", "level_code": ""},
+            {"name": "Dialogflow", "level_code": ""},
+            {"name": "Rasa", "level_code": ""},
+            {"name": "Power BI", "level_code": ""},
+            {"name": "Tableau", "level_code": ""},
+            {"name": "Tensorflow", "level_code": ""},
+            {"name": "Keras", "level_code": ""},
+            {"name": "Web Scraping", "level_code": ""},
+            {"name": "Docker", "level_code": ""},
+            {"name": "Regex", "level_code": ""}
+        ],
+        "hobbies": [
+            {"name": "Deep Learning"},
+            {"name": "Text Generation"},
+            {"name": "Language Learning"},
+            {"name": "Travel"},
+            {"name": "Project Management"}
+        ],
+        "languages": [
+            {"language_code": "en", "level_code": "native"},
+            {"language_code": "fr", "level_code": "fluent"},
+            {"language_code": "ja", "level_code": "proficient"},
+            {"language_code": "de", "level_code": "basic"},
+            {"language_code": "ar", "level_code": "basic"}
+        ],
+        "certifications": [
+            {"name": "Microsoft Azure Data Scientist DP100", "date": datetime.date(2020, 1, 1)},
+            {"name": "Microsoft Azure AI Solutions AI100", "date": datetime.date(2020, 1, 1)},
+            {"name": "Scrum Foundations Professional Certificate - Certiprof", "date": datetime.date(2020, 1, 1)},
+            {"name": "Agile Methodologies and Project Management - Simplon", "date": datetime.date(2020, 1, 1)}
+        ]
+    }}
+
+Instructions:
+- Use the exact dictionary structure shown above.
+- The '...' should be replaced by remaining entries from CV, or removed. Do not leave them in the final version.
+- Ensure all dates are converted to datetime.date objects
+- If no value is available, use an empty string or None
+- Include all relevant information from the CV
+- Maintain the order and naming of keys as specified
+- Always return a valid JSON structure.
+- Use double quotes
+
+CV to extract: "{cv_text}"

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Extraction Results - CV Extract RAG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .back-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .cv-text-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .cv-text-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .cv-text-content {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-card h2::before {
+            font-size: 1.8rem;
+        }
+
+        .result-card h2[data-icon="education"]::before { content: "🎓"; }
+        .result-card h2[data-icon="employment"]::before { content: "💼"; }
+        .result-card h2[data-icon="skills"]::before { content: "🛠️"; }
+        .result-card h2[data-icon="languages"]::before { content: "🌍"; }
+        .result-card h2[data-icon="profile"]::before { content: "👤"; }
+        .result-card h2[data-icon="hobbies"]::before { content: "🎯"; }
+        .result-card h2[data-icon="certifications"]::before { content: "🏆"; }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .table-container th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border: none;
+        }
+
+        .table-container td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+
+        .table-container tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .table-container tr:hover {
+            background: #e3f2fd;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .empty-message::before {
+            content: "📝";
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .stats-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .rag-demo-link {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .rag-demo-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .rag-demo-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CV Extraction Results</h1>
+            <p>Structured data extracted from your CV using advanced LLM techniques</p>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="/" class="back-button">← Back to Upload</a>
+            <a href="/rag_demo" class="rag-demo-btn">🚀 Try Interactive RAG Demo</a>
+        </div>
+
+        <!-- CV Text Section -->
+        <div class="cv-text-section">
+            <h2>📄 Original CV Text</h2>
+            <div class="cv-text-content">{{ cv_description }}</div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="stats-section">
+            <h2 style="color: #667eea; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                📊 Extraction Statistics
+            </h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">{{ extraction.get('educations', [])|length }}</div>
+                    <div class="stat-label">Education Entries</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ extraction.get('employments', [])|length }}</div>
+                    <div class="stat-label">Employment Records</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ extraction.get('skills', [])|length }}</div>
+                    <div class="stat-label">Skills Identified</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ extraction.get('languages', [])|length }}</div>
+                    <div class="stat-label">Languages</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ extraction.get('certifications', [])|length }}</div>
+                    <div class="stat-label">Certifications</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ extraction.get('hobbies', [])|length }}</div>
+                    <div class="stat-label">Hobbies</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Grid -->
+        <div class="results-grid">
+            <!-- Profile Section -->
+            <div class="result-card">
+                <h2 data-icon="profile">Profile Information</h2>
+                {% if profile_df_html %}
+                    <div class="table-container">
+                        {{ profile_df_html | safe }}
+                    </div>
+                {% else %}
+                    <div class="empty-message">No profile information extracted</div>
+                {% endif %}
+            </div>
+
+            <!-- Education Section -->
+            <div class="result-card">
+                <h2 data-icon="education">Education History</h2>
+                {% if education_df_html %}
+                    <div class="table-container">
+                        {{ education_df_html | safe }}
+                    </div>
+                {% else %}
+                    <div class="empty-message">No education information extracted</div>
+                {% endif %}
+            </div>
+
+            <!-- Employment Section -->
+            <div class="result-card">
+                <h2 data-icon="employment">Employment History</h2>
+                {% if employment_df_html %}
+                    <div class="table-container">
+                        {{ employment_df_html | safe }}
+                    </div>
+                {% else %}
+                    <div class="empty-message">No employment information extracted</div>
+                {% endif %}
+            </div>
+
+            <!-- Skills Section -->
+            <div class="result-card">
+                <h2 data-icon="skills">Technical Skills</h2>
+                {% if skills_df_html %}
+                    <div class="table-container">
+                        {{ skills_df_html | safe }}
+                    </div>
+                {% else %}
+                    <div class="empty-message">No skills information extracted</div>
+                {% endif %}
+            </div>
+
+            <!-- Languages Section -->
+            <div class="result-card">
+                <h2 data-icon="languages">Language Skills</h2>
+                {% if language_df_html %}
+                    <div class="table-container">
+                        {{ language_df_html | safe }}
+                    </div>
+                {% else %}
+                    <div class="empty-message">No language information extracted</div>
+                {% endif %}
+            </div>
+
+            <!-- Hobbies Section -->
+            <div class="result-card">
+                <h2 data-icon="hobbies">Hobbies & Interests</h2>
+                {% if hobby_df_html %}
+                    <div class="table-container">
+                        {{ hobby_df_html | safe }}
+                    </div>
+                {% else %}
+                    <div class="empty-message">No hobbies information extracted</div>
+                {% endif %}
+            </div>
+
+            <!-- Certifications Section -->
+            <div class="result-card">
+                <h2 data-icon="certifications">Certifications</h2>
+                {% if certifications_df_html %}
+                    <div class="table-container">
+                        {{ certifications_df_html | safe }}
+                    </div>
+                {% else %}
+                    <div class="empty-message">No certifications information extracted</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/rag_demo" class="rag-demo-btn">🚀 Try Interactive RAG Demo</a>
+        </div>
+    </div>
+</body>
+</html>

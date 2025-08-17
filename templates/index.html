@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CV Extract RAG - Educational CV Parser</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        margin: 0;
+        padding: 20px;
+        min-height: 100vh;
+        color: #333;
+      }
+      
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+      
+      h1 {
+        text-align: center;
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 2.5rem;
+      }
+      
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+      }
+      
+      .demo-link {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      
+      .demo-btn {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        text-decoration: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        display: inline-block;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      }
+      
+      .demo-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      }
+      
+      form {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      
+      label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 10px;
+        display: block;
+      }
+      
+      textarea {
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        border: 2px solid #e1e5e9;
+        resize: vertical;
+        font-size: 14px;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+      }
+      
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      
+      input[type="submit"] {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: #fff;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      }
+      
+      input[type="submit"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      }
+      
+      .features {
+        margin-top: 40px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+      
+      .feature {
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        border: 1px solid #e9ecef;
+      }
+      
+      .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
+      }
+      
+      .feature h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+      
+      .feature p {
+        color: #666;
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>CV Extract RAG</h1>
+      <p class="subtitle">Educational CV Parser with Retrieval-Augmented Generation</p>
+      
+      <div class="demo-link">
+        <a href="/rag_demo" class="demo-btn">🚀 Try Interactive RAG Demo</a>
+      </div>
+      
+      <form method="post" action="/result">
+        <label for="cv">Upload Your CV:</label>
+        <textarea id="cv" name="cv" rows="12" placeholder="Paste your CV text here to extract structured information..."></textarea>
+        <input type="submit" value="Extract CV Data">
+      </form>
+      
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🔍</div>
+          <h3>Smart Extraction</h3>
+          <p>Extract structured data from CVs using advanced LLM techniques</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🧠</div>
+          <h3>RAG Technology</h3>
+          <p>See how Retrieval-Augmented Generation works in practice</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>Structured Output</h3>
+          <p>Get organized data for education, employment, skills, and more</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎓</div>
+          <h3>Educational</h3>
+          <p>Learn about RAG concepts through interactive visualization</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

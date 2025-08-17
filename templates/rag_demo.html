@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Extract RAG - Educational Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .input-section {
+            grid-column: 1 / -1;
+        }
+
+        .cv-input {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .cv-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 0 20px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e1e5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .step-circle.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .step-circle.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 12px;
+            text-align: center;
+            color: #666;
+        }
+
+        .chunk-display {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .chunk-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .chunk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .chunk-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .query-section {
+            grid-column: 1 / -1;
+        }
+
+        .query-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .results-section {
+            grid-column: 1 / -1;
+        }
+
+        .result-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .educational-info {
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .educational-info h3 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .educational-info p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .highlight {
+            background: yellow;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .similarity-score {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .step-indicator {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CV Extract RAG</h1>
+            <p>Educational Web App - See How Retrieval-Augmented Generation Works</p>
+        </div>
+
+        <div class="main-content">
+            <!-- CV Input Section -->
+            <div class="card input-section">
+                <h2>📄 Upload Your CV</h2>
+                <textarea id="cvInput" class="cv-input" placeholder="Paste your CV text here..."></textarea>
+                <button id="processBtn" class="btn">Process CV with RAG</button>
+                <button id="demoBtn" class="btn">Load Demo CV</button>
+            </div>
+
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step">
+                    <div class="step-circle" id="step1">1</div>
+                    <div class="step-label">Upload & Chunk</div>
+                </div>
+                <div class="step">
+                    <div class="step-circle" id="step2">2</div>
+                    <div class="step-label">Generate Embeddings</div>
+                </div>
+                <div class="step">
+                    <div class="step-circle" id="step3">3</div>
+                    <div class="step-label">Query & Retrieve</div>
+                </div>
+                <div class="step">
+                    <div class="step-circle" id="step4">4</div>
+                    <div class="step-label">Generate Answer</div>
+                </div>
+            </div>
+
+            <!-- Chunking View -->
+            <div class="card" id="chunkingView" style="display: none;">
+                <h2>🔪 Document Chunking</h2>
+                <div class="educational-info">
+                    <h3>What is Document Chunking?</h3>
+                    <p>Breaking down the CV into smaller, manageable pieces allows the system to process and analyze specific sections more effectively.</p>
+                    <p><strong>Technical Details:</strong> Chunks are created with overlapping text to maintain context between sections. Each chunk is assigned metadata including position, word count, and character boundaries.</p>
+                    <p><strong>Benefits:</strong> Enables focused analysis, improves processing efficiency, and allows for targeted retrieval of relevant information.</p>
+                </div>
+                <div id="chunkDisplay" class="chunk-display"></div>
+            </div>
+
+            <!-- Embeddings View -->
+            <div class="card" id="embeddingsView" style="display: none;">
+                <h2>🧮 Vector Embeddings</h2>
+                <div class="educational-info">
+                    <h3>What are Vector Embeddings?</h3>
+                    <p>Converting text chunks into numerical vectors (embeddings) that capture semantic meaning and enable similarity calculations.</p>
+                    <p><strong>Technical Details:</strong> Using OpenAI's text-embedding-ada-002 model or TF-IDF as fallback. Each chunk becomes a high-dimensional vector representing its semantic content.</p>
+                    <p><strong>Benefits:</strong> Enables semantic search, similarity matching, and numerical analysis of text content.</p>
+                </div>
+                <div id="embeddingStats"></div>
+            </div>
+
+            <!-- Query Section -->
+            <div class="card query-section" id="querySection" style="display: none;">
+                <h2>❓ Ask Questions About Your CV</h2>
+                <input type="text" id="queryInput" class="query-input" placeholder="e.g., What are the candidate's technical skills? What experience do they have with Python?">
+                <button id="queryBtn" class="btn">Ask Question</button>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card results-section" id="resultsSection" style="display: none;">
+                <h2>🎯 RAG Results</h2>
+                <div id="retrievedChunks"></div>
+                <div id="finalAnswer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let chunks = [];
+        let embeddings = [];
+
+        // Demo CV data
+        const demoCV = `
+CELIA CLEMENTS
+F U L L S T A C K S O F T W A R E D E V E L O P E R C E L I A C L E M E N T S @ H O T M A I L . C O . U K
++ 3 3 6 8 1 7 2 1 4 9 8
+W I T H A B A C K G R O U N D I N D A T A
+P R O F E S S I O N A L E X P E R I E N C E
+Intuition Software - Full-Stack Python Developer
+NOVEMBER 2020 - PRESENT
+Led a comprehensive modernisation of the JobAffinity ATS web app interface:
+Conducted R&D for data exploration, clustering, and transformation, testing on 5,000 CVs with a BART text-to
+JSON model.
+Created an in-house CV extraction system with LLMs, saving €10,000 annually
+Built a job validation module based on hexagonal architecture for efficient job approval workflows.
+Developed key features such as a calendar system, one-click rejection, and customisable notifications with
+adjustable colour schemes.
+Played a crucial role in providing robust technical support & proficiently refactored legacy code into optimised
+and reusable modules.
+Technology used: Python, CSS, javascript, Flask, MySql, XML, Docker, Bootstrap
+
+DXC Technology - Data AI Engineer
+JULY 2019 - SEPTEMBER 2020
+Orange - analysis of 400 shops' data:
+Prediction of phone accessory sales using time series algorithms - LSTM
+Preprocessing of a large dataset of 5 million lines & data visualisation - Python and pandas
+DXC - Job market analysis:
+Vacant jobs in 2019 in 5 French cities. Web scraping of Indeed.fr using Python
+Data extraction: Job title, role, skills needed, salary, experience (Regex, NLTK, Spacy)
+Salary Prediction using machine learning models : SVM and Random Forest
+
+S K I L L S
+Languages: English (native), French (fluent), Japanese (proficient), German (basic), Arabic (basic)
+Coding Languages: Python, Java, Javascript, R, C#, HTML, SQL, MongoDB, Spark, CSS
+Other: Azure, Dialogflow, Rasa, Power BI, Tableau, Tensorflow, Keras, Web Scraping, Docker, Regex
+
+C E R T I F I C A T I O N S
+Microsoft Azure Data Scientist DP100 (2020)
+Microsoft Azure AI Solutions AI100 (2020)
+Scrum Foundations Professional Certificate - Certiprof (2020)
+Agile Methodologies and Project Management - Simplon (2020)`;
+
+        // Event Listeners
+        document.getElementById('demoBtn').addEventListener('click', loadDemoCV);
+        document.getElementById('processBtn').addEventListener('click', processCV);
+        document.getElementById('queryBtn').addEventListener('click', askQuestion);
+
+        function loadDemoCV() {
+            document.getElementById('cvInput').value = demoCV;
+        }
+
+        function updateStepIndicator(step) {
+            // Reset all steps
+            for (let i = 1; i <= 4; i++) {
+                const stepCircle = document.getElementById(`step${i}`);
+                stepCircle.className = 'step-circle';
+            }
+
+            // Update current step
+            if (step >= 1) {
+                document.getElementById('step1').className = 'step-circle active';
+            }
+            if (step >= 2) {
+                document.getElementById('step1').className = 'step-circle completed';
+                document.getElementById('step2').className = 'step-circle active';
+            }
+            if (step >= 3) {
+                document.getElementById('step2').className = 'step-circle completed';
+                document.getElementById('step3').className = 'step-circle active';
+            }
+            if (step >= 4) {
+                document.getElementById('step3').className = 'step-circle completed';
+                document.getElementById('step4').className = 'step-circle active';
+            }
+        }
+
+        async function processCV() {
+            const cvText = document.getElementById('cvInput').value.trim();
+            if (!cvText) {
+                alert('Please enter CV text first');
+                return;
+            }
+
+            updateStepIndicator(1);
+            showLoading('Processing CV...');
+
+            try {
+                const response = await fetch('/rag_process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'cv_text': cvText
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    chunks = data.chunks;
+                    updateStepIndicator(2);
+                    showChunkingView();
+                    showEmbeddingsView(data.pipeline_summary);
+                    updateStepIndicator(3);
+                    showQuerySection();
+                    updateStepIndicator(4);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error processing CV: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        function showChunkingView() {
+            document.getElementById('chunkingView').style.display = 'block';
+            const chunkDisplay = document.getElementById('chunkDisplay');
+            
+            chunkDisplay.innerHTML = chunks.map((chunk, index) => `
+                <div class="chunk-item">
+                    <div class="chunk-header">
+                        <span>Chunk ${index + 1}</span>
+                        <span>Words: ${chunk.word_count}</span>
+                    </div>
+                    <div class="chunk-text">${chunk.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function showEmbeddingsView(summary) {
+            document.getElementById('embeddingsView').style.display = 'block';
+            const embeddingStats = document.getElementById('embeddingStats');
+            
+            embeddingStats.innerHTML = `
+                <div class="result-item">
+                    <div class="result-title">Embedding Statistics</div>
+                    <p><strong>Total Chunks:</strong> ${summary.total_chunks}</p>
+                    <p><strong>Average Chunk Size:</strong> ${summary.chunk_size_avg.toFixed(1)} words</p>
+                    <p><strong>Embeddings Generated:</strong> ${summary.embeddings_generated}</p>
+                    <p><strong>Embedding Dimension:</strong> ${summary.embedding_dimension}</p>
+                </div>
+            `;
+        }
+
+        function showQuerySection() {
+            document.getElementById('querySection').style.display = 'block';
+        }
+
+        async function askQuestion() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) {
+                alert('Please enter a question');
+                return;
+            }
+
+            showLoading('Processing your question...');
+
+            try {
+                const response = await fetch('/rag_query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'query': query
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResults(data);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error processing question: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        function showResults(data) {
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            // Show retrieved chunks
+            const retrievedChunks = document.getElementById('retrievedChunks');
+            retrievedChunks.innerHTML = `
+                <div class="result-item">
+                    <div class="result-title">🔍 Retrieved Relevant Chunks</div>
+                    ${data.retrieved_chunks.map(chunk => `
+                        <div class="chunk-item">
+                            <div class="chunk-header">
+                                <span>Chunk ${chunk.rank}</span>
+                                <span class="similarity-score">Score: ${chunk.similarity_score.toFixed(3)}</span>
+                            </div>
+                            <div class="chunk-text">${chunk.text}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // Show final answer
+            const finalAnswer = document.getElementById('finalAnswer');
+            finalAnswer.innerHTML = `
+                <div class="result-item">
+                    <div class="result-title">💡 AI-Generated Answer</div>
+                    <p><strong>Question:</strong> ${data.query}</p>
+                    <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px; border-left: 4px solid #28a745;">
+                        ${data.answer}
+                    </div>
+                </div>
+            `;
+        }
+
+        function showLoading(message) {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading';
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = `
+                <div class="spinner"></div>
+                <p>${message}</p>
+            `;
+            document.body.appendChild(loadingDiv);
+        }
+
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loading');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+
+        // Initialize
+        updateStepIndicator(0);
+    </script>
+</body>
+</html> 
