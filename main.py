@@ -2,11 +2,10 @@ from flask import Flask, render_template, request, jsonify, session
 import os
 import pandas as pd
 from openai_adapter import OpenAILLMClient
-from ollama_adapter import OllamaLLMClient
+# from ollama_adapter import OllamaLLMClient  # Commented out - requires Rust compilation
 from scaleway_adapter import ScalewayLLMClient
 from rag_service import RAGService
 import json
-import os
 import secrets
 from dotenv import load_dotenv
 
@@ -28,7 +27,7 @@ app.secret_key = secret_key
 # Use dependency injection to instantiate the OpenAI client as the default LLM client
 llm_client = OpenAILLMClient()
 # llm_client = ScalewayLLMClient()
-# llm_client = OllamaLLMClient()
+# llm_client = OllamaLLMClient()  # Commented out - requires Rust compilation
 
 # Initialize RAG service
 rag_service = RAGService()
