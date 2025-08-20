@@ -278,6 +278,10 @@
             font-weight: bold;
         }
 
+        .preview-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
+        .preview-box { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; }
+        .preview-title { font-weight: 600; color: #495057; margin-bottom: 6px; }
+
         @media (max-width: 768px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -506,6 +510,13 @@ Agile Methodologies and Project Management - Simplon (2020)`;
             document.getElementById('embeddingsView').style.display = 'block';
             const embeddingStats = document.getElementById('embeddingStats');
             
+            const previewsHtml = (summary.embedding_previews || []).map(p => `
+                <div class="preview-box">
+                    <div class="preview-title">Chunk ${p.chunk_id + 1} (first values)</div>
+                    [ ${p.values.join(', ')} ]
+                </div>
+            `).join('');
+
             embeddingStats.innerHTML = `
                 <div class="result-item">
                     <div class="result-title">Embedding Statistics</div>
@@ -513,6 +524,7 @@ Agile Methodologies and Project Management - Simplon (2020)`;
                     <p><strong>Average Chunk Size:</strong> ${summary.chunk_size_avg.toFixed(1)} words</p>
                     <p><strong>Embeddings Generated:</strong> ${summary.embeddings_generated}</p>
                     <p><strong>Embedding Dimension:</strong> ${summary.embedding_dimension}</p>
+                    <div class="preview-grid">${previewsHtml}</div>
                 </div>
             `;
         }

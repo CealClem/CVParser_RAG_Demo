@@ -99,9 +99,9 @@ class RAGService:
                 )
                 query_embedding = response.data[0].embedding
             except:
-                query_embedding = self._generate_tfidf_embeddings([{"text": query}])[0]
+                query_embedding = self._generate_tfidf_embeddings([{ "text": query }])[0]
         else:
-            query_embedding = self._generate_tfidf_embeddings([{"text": query}])[0]
+            query_embedding = self._generate_tfidf_embeddings([{ "text": query }])[0]
         
         # Calculate similarities
         similarities = []
@@ -170,6 +170,24 @@ Please provide a comprehensive answer based on the retrieved information. If the
             "context_used": context
         }
     
+    def _build_embedding_previews(self, max_values: int = 8) -> List[Dict[str, Any]]:
+        previews: List[Dict[str, Any]] = []
+        if not self.embeddings:
+            return previews
+        for i, embedding in enumerate(self.embeddings):
+            # Ensure numeric and round for display
+            head_values = []
+            for val in embedding[:max_values]:
+                try:
+                    head_values.append(round(float(val), 3))
+                except Exception:
+                    head_values.append(0.0)
+            previews.append({
+                "chunk_id": i,
+                "values": head_values
+            })
+        return previews
+    
     def get_educational_explanation(self, step: str) -> Dict[str, str]:
         """
         Provide educational explanations for each RAG step
@@ -212,6 +230,7 @@ Please provide a comprehensive answer based on the retrieved information. If the
             "chunk_size_avg": np.mean([chunk["word_count"] for chunk in self.chunks]) if self.chunks else 0,
             "embeddings_generated": len(self.embeddings),
             "embedding_dimension": len(self.embeddings[0]) if self.embeddings else 0,
+            "embedding_previews": self._build_embedding_previews(),
             "pipeline_steps": [
                 "Document Upload & Preprocessing",
                 "Text Chunking with Overlap",
