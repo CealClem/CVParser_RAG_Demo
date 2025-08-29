@@ -262,7 +262,7 @@ Answer:"""
                 response = self.openai_client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
-                        {"role": "system", "content": "You are a helpful CV analysis assistant. Provide clear, accurate answers based on the given CV context. Be specific and reference relevant details."},
+                        {"role": "system", "content": "You are a helpful CV analysis assistant. Provide clear, accurate, succinct answers based on the given CV context. Be specific and reference relevant details. No more than 3 sentences."},
                         {"role": "user", "content": prompt}
                     ],
                     max_tokens=500,
