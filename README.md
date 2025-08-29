@@ -2,6 +2,8 @@
 
 A comprehensive web application that demonstrates Retrieval-Augmented Generation (RAG) concepts through an interactive CV parsing tool. This project serves as both a practical CV extraction system and an educational showcase for understanding how RAG works under the hood.
 
+### Check out the deployed demo : https://cv-extractor-rag.onrender.com/ 
+
 ## 🎯 Project Goals
 
 - **Educational Showcase**: Provide an interactive, step-by-step explanation of RAG concepts (document chunking, embedding, retrieval, LLM response)
