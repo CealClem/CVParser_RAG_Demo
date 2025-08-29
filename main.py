@@ -8,6 +8,15 @@ from rag_service import RAGService
 import json
 import secrets
 from dotenv import load_dotenv
+import logging
+from cv_file_processor import CVFileProcessor
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize the CV processor
+cv_processor = CVFileProcessor()
 
 load_dotenv()
 
@@ -141,6 +150,76 @@ def educational_info(step):
     """Get educational information for a specific RAG step"""
     explanation = rag_service.get_educational_explanation(step)
     return jsonify(explanation)
+
+# Store processed CV data (in production, use proper session management or database)
+cv_data_store = {}
+
+@app.route('/upload_cv', methods=['POST'])
+def upload_cv():
+    """
+    Handle CV file upload and text extraction
+    """
+    try:
+        # Check if file is in request
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False, 
+                'error': 'No file uploaded'
+            })
+        
+        file = request.files['file']
+        
+        # Check if file was selected
+        if file.filename == '':
+            return jsonify({
+                'success': False, 
+                'error': 'No file selected'
+            })
+        
+        logger.info(f"Processing uploaded file: {file.filename}")
+        
+        # Read file data
+        file_data = file.read()
+        filename = file.filename
+        
+        # Get file info for logging/debugging
+        file_info = cv_processor.get_file_info(file_data, filename)
+        logger.info(f"File info: {file_info}")
+        
+        # Process the file and extract text
+        success, extracted_text, error = cv_processor.process_uploaded_file(file_data, filename)
+        
+        if success:
+            logger.info(f"Successfully extracted {len(extracted_text)} characters from {filename}")
+            
+            # Store the extracted text (you might want to use session ID or user ID as key)
+            session_id = request.remote_addr  # Simple approach - use IP as session ID
+            cv_data_store[session_id] = {
+                'text': extracted_text,
+                'filename': filename,
+                'file_info': file_info
+            }
+            
+            return jsonify({
+                'success': True,
+                'extracted_text': extracted_text,
+                'filename': filename,
+                'file_info': file_info,
+                'message': f'Successfully extracted text from {filename}'
+            })
+        else:
+            logger.error(f"Failed to extract text from {filename}: {error}")
+            return jsonify({
+                'success': False, 
+                'error': error
+            })
+            
+    except Exception as e:
+        logger.error(f"Server error during file upload: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'error': f'Server error: {str(e)}'
+        })
 
 @app.route('/rag_demo')
 def rag_demo():

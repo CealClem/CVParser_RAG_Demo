@@ -6,20 +6,29 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from openai import OpenAI
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class RAGService:
     def __init__(self):
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         if self.openai_api_key:
             self.openai_client = OpenAI(api_key=self.openai_api_key)
+            logger.info("OpenAI client initialized successfully")
         else:
             self.openai_client = None
+            logger.warning("No OpenAI API key found - using TF-IDF fallback")
         
         self.chunks = []
         self.embeddings = []
         self.chunk_metadata = []
+        self.vectorizer = None  # Store the vectorizer for TF-IDF queries
+        self.use_openai = False  # Track which embedding method was used
         
     def chunk_document(self, text: str, chunk_size: int = 200, overlap: int = 50) -> List[Dict[str, Any]]:
         """
@@ -33,30 +42,49 @@ class RAGService:
             chunk_words = words[i:i + chunk_size]
             chunk_text = " ".join(chunk_words)
             
+            # Find the actual position in the original text
+            start_pos = text.find(" ".join(chunk_words[:3])) if len(chunk_words) >= 3 else 0
+            if start_pos == -1:
+                start_pos = 0
+            
             chunk_info = {
                 "id": len(chunks),
                 "text": chunk_text,
                 "start_word": i,
                 "end_word": min(i + chunk_size, len(words)),
                 "word_count": len(chunk_words),
-                "start_char": text.find(chunk_text),
-                "end_char": text.find(chunk_text) + len(chunk_text)
+                "start_char": start_pos,
+                "end_char": start_pos + len(chunk_text)
             }
             chunks.append(chunk_info)
             
         self.chunks = chunks
+        logger.info(f"Created {len(chunks)} chunks")
         return chunks
     
     def generate_embeddings(self, chunks: List[Dict[str, Any]]) -> List[List[float]]:
         """
-        Generate embeddings for each chunk using OpenAI API
+        Generate embeddings for each chunk using OpenAI API or TF-IDF fallback
         """
-        if not self.openai_client:
-            # Fallback to TF-IDF if no API key
-            return self._generate_tfidf_embeddings(chunks)
+        if not chunks:
+            logger.warning("No chunks provided for embedding generation")
+            return []
         
+        if self.openai_client:
+            try:
+                return self._generate_openai_embeddings(chunks)
+            except Exception as e:
+                logger.error(f"OpenAI embedding failed, falling back to TF-IDF: {e}")
+                return self._generate_tfidf_embeddings(chunks)
+        else:
+            return self._generate_tfidf_embeddings(chunks)
+    
+    def _generate_openai_embeddings(self, chunks: List[Dict[str, Any]]) -> List[List[float]]:
+        """
+        Generate embeddings using OpenAI API
+        """
         embeddings = []
-        for chunk in chunks:
+        for i, chunk in enumerate(chunks):
             try:
                 response = self.openai_client.embeddings.create(
                     input=chunk["text"],
@@ -64,62 +92,134 @@ class RAGService:
                 )
                 embedding = response.data[0].embedding
                 embeddings.append(embedding)
+                logger.debug(f"Generated OpenAI embedding for chunk {i}")
             except Exception as e:
-                print(f"Error generating embedding: {e}")
-                # Fallback to TF-IDF
+                logger.error(f"Error generating OpenAI embedding for chunk {i}: {e}")
+                # If any chunk fails, fall back to TF-IDF for all
                 return self._generate_tfidf_embeddings(chunks)
         
         self.embeddings = embeddings
+        self.use_openai = True
+        logger.info(f"Generated {len(embeddings)} OpenAI embeddings")
         return embeddings
     
     def _generate_tfidf_embeddings(self, chunks: List[Dict[str, Any]]) -> List[List[float]]:
         """
-        Fallback to TF-IDF embeddings if OpenAI API is not available
+        Generate TF-IDF embeddings as fallback
         """
         texts = [chunk["text"] for chunk in chunks]
-        vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
-        tfidf_matrix = vectorizer.fit_transform(texts)
-        embeddings = tfidf_matrix.toarray().tolist()
-        self.embeddings = embeddings
-        return embeddings
+        
+        # Initialize and fit the vectorizer
+        self.vectorizer = TfidfVectorizer(
+            max_features=1000, 
+            stop_words='english',
+            ngram_range=(1, 2),  # Include bigrams for better semantic capture
+            min_df=1,  # Include terms that appear in at least 1 document
+            max_df=0.8  # Exclude terms that appear in more than 80% of documents
+        )
+        
+        try:
+            tfidf_matrix = self.vectorizer.fit_transform(texts)
+            embeddings = tfidf_matrix.toarray().tolist()
+            
+            self.embeddings = embeddings
+            self.use_openai = False
+            logger.info(f"Generated {len(embeddings)} TF-IDF embeddings with {len(self.vectorizer.get_feature_names_out())} features")
+            return embeddings
+        except Exception as e:
+            logger.error(f"Error generating TF-IDF embeddings: {e}")
+            # Return zero embeddings as last resort
+            embedding_dim = 100  # Default dimension
+            embeddings = [[0.0] * embedding_dim for _ in chunks]
+            self.embeddings = embeddings
+            self.use_openai = False
+            return embeddings
+    
+    def _get_query_embedding(self, query: str) -> List[float]:
+        """
+        Generate embedding for a query using the same method as the chunks
+        """
+        if self.use_openai and self.openai_client:
+            try:
+                response = self.openai_client.embeddings.create(
+                    input=query,
+                    model="text-embedding-ada-002"
+                )
+                return response.data[0].embedding
+            except Exception as e:
+                logger.error(f"Error generating OpenAI query embedding: {e}")
+                # Fall back to TF-IDF if OpenAI fails
+                self.use_openai = False
+        
+        # Use TF-IDF for query
+        if self.vectorizer:
+            try:
+                query_tfidf = self.vectorizer.transform([query])
+                return query_tfidf.toarray()[0].tolist()
+            except Exception as e:
+                logger.error(f"Error generating TF-IDF query embedding: {e}")
+                # Return zero vector as last resort
+                return [0.0] * len(self.embeddings[0]) if self.embeddings else [0.0] * 100
+        else:
+            logger.error("No vectorizer available for query embedding")
+            return [0.0] * len(self.embeddings[0]) if self.embeddings else [0.0] * 100
     
     def retrieve_relevant_chunks(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
         """
         Retrieve most relevant chunks based on query similarity
         """
         if not self.embeddings:
+            logger.warning("No embeddings available for retrieval")
             return []
         
-        # Generate query embedding
-        if self.openai_client:
-            try:
-                response = self.openai_client.embeddings.create(
-                    input=query,
-                    model="text-embedding-ada-002"
-                )
-                query_embedding = response.data[0].embedding
-            except:
-                query_embedding = self._generate_tfidf_embeddings([{ "text": query }])[0]
-        else:
-            query_embedding = self._generate_tfidf_embeddings([{ "text": query }])[0]
+        if not query.strip():
+            logger.warning("Empty query provided")
+            return []
         
-        # Calculate similarities
-        similarities = []
-        for i, embedding in enumerate(self.embeddings):
-            similarity = cosine_similarity([query_embedding], [embedding])[0][0]
-            similarities.append((i, similarity))
-        
-        # Sort by similarity and get top_k
-        similarities.sort(key=lambda x: x[1], reverse=True)
-        top_chunks = []
-        
-        for chunk_idx, similarity in similarities[:top_k]:
-            chunk_info = self.chunks[chunk_idx].copy()
-            chunk_info["similarity_score"] = float(similarity)
-            chunk_info["rank"] = len(top_chunks) + 1
-            top_chunks.append(chunk_info)
-        
-        return top_chunks
+        try:
+            # Generate query embedding using the same method as chunks
+            query_embedding = self._get_query_embedding(query)
+            
+            if not query_embedding or all(x == 0 for x in query_embedding):
+                logger.warning("Failed to generate valid query embedding")
+                return []
+            
+            # Calculate similarities
+            similarities = []
+            for i, chunk_embedding in enumerate(self.embeddings):
+                try:
+                    # Ensure both embeddings have the same dimension
+                    if len(query_embedding) != len(chunk_embedding):
+                        logger.warning(f"Dimension mismatch: query({len(query_embedding)}) vs chunk({len(chunk_embedding)})")
+                        continue
+                    
+                    similarity = cosine_similarity([query_embedding], [chunk_embedding])[0][0]
+                    similarities.append((i, float(similarity)))
+                except Exception as e:
+                    logger.error(f"Error calculating similarity for chunk {i}: {e}")
+                    continue
+            
+            if not similarities:
+                logger.warning("No valid similarities calculated")
+                return []
+            
+            # Sort by similarity and get top_k
+            similarities.sort(key=lambda x: x[1], reverse=True)
+            top_chunks = []
+            
+            for rank, (chunk_idx, similarity) in enumerate(similarities[:top_k]):
+                if chunk_idx < len(self.chunks):
+                    chunk_info = self.chunks[chunk_idx].copy()
+                    chunk_info["similarity_score"] = similarity
+                    chunk_info["rank"] = rank + 1
+                    top_chunks.append(chunk_info)
+            
+            logger.info(f"Retrieved {len(top_chunks)} relevant chunks for query: '{query[:50]}...'")
+            return top_chunks
+            
+        except Exception as e:
+            logger.error(f"Error in retrieve_relevant_chunks: {e}")
+            return []
     
     def generate_rag_response(self, query: str, retrieved_chunks: List[Dict[str, Any]], 
                             cv_text: str) -> Dict[str, Any]:
@@ -127,41 +227,57 @@ class RAGService:
         Generate RAG response using LLM with retrieved context
         """
         if not retrieved_chunks:
-            return {"error": "No relevant chunks found"}
+            return {
+                "answer": "I couldn't find relevant information in the CV to answer your question. Please try rephrasing your query or ask about specific aspects like skills, experience, or education.",
+                "query": query,
+                "retrieved_chunks": [],
+                "context_used": ""
+            }
         
         # Prepare context from retrieved chunks
-        context = "\n\n".join([f"Chunk {chunk['rank']} (Score: {chunk['similarity_score']:.3f}):\n{chunk['text']}" 
-                              for chunk in retrieved_chunks])
+        context_parts = []
+        for chunk in retrieved_chunks:
+            context_parts.append(f"Relevant Section (Similarity: {chunk['similarity_score']:.3f}):\n{chunk['text']}")
+        
+        context = "\n\n".join(context_parts)
         
         # Create prompt for LLM
-        prompt = f"""Based on the following CV context and retrieved relevant chunks, answer the question: "{query}"
-
-CV Context:
-{cv_text[:1000]}...
-
-Retrieved Relevant Chunks:
-{context}
+        prompt = f"""Based on the following CV information and retrieved relevant sections, answer the question clearly and accurately.
 
 Question: {query}
 
-Please provide a comprehensive answer based on the retrieved information. If the information is not sufficient, indicate what additional information would be needed."""
+Retrieved Relevant Sections:
+{context}
+
+Instructions:
+- Provide a direct, comprehensive answer based on the retrieved information
+- If the information is incomplete, indicate what additional details might be helpful
+- Be specific and reference relevant details from the CV
+- If no relevant information is found, say so clearly
+
+Answer:"""
 
         try:
             if self.openai_client:
                 response = self.openai_client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
-                        {"role": "system", "content": "You are a helpful CV analysis assistant. Provide clear, accurate answers based on the given context."},
+                        {"role": "system", "content": "You are a helpful CV analysis assistant. Provide clear, accurate answers based on the given CV context. Be specific and reference relevant details."},
                         {"role": "user", "content": prompt}
                     ],
-                    max_tokens=500
+                    max_tokens=500,
+                    temperature=0.3  # Lower temperature for more consistent responses
                 )
-                answer = response.choices[0].message.content
+                answer = response.choices[0].message.content.strip()
+                logger.info("Generated OpenAI response successfully")
             else:
-                # Fallback response
-                answer = f"Based on the retrieved chunks, here's what I found:\n\n{context}\n\nQuestion: {query}\n\nNote: This is a fallback response. For better results, please provide an OpenAI API key."
+                # Fallback response with extracted information
+                answer = f"Based on the retrieved CV sections:\n\n{context}\n\nRegarding your question '{query}': The most relevant information has been extracted above. For a more detailed analysis, please provide an OpenAI API key."
+                logger.info("Generated fallback response")
+                
         except Exception as e:
-            answer = f"Error generating response: {str(e)}"
+            logger.error(f"Error generating LLM response: {e}")
+            answer = f"I found relevant information in the CV but encountered an error generating a detailed response. Here's what I found:\n\n{context}"
         
         return {
             "answer": answer,
@@ -171,21 +287,31 @@ Please provide a comprehensive answer based on the retrieved information. If the
         }
     
     def _build_embedding_previews(self, max_values: int = 8) -> List[Dict[str, Any]]:
-        previews: List[Dict[str, Any]] = []
+        """
+        Build embedding previews for educational display
+        """
+        previews = []
         if not self.embeddings:
             return previews
-        for i, embedding in enumerate(self.embeddings):
-            # Ensure numeric and round for display
-            head_values = []
-            for val in embedding[:max_values]:
-                try:
-                    head_values.append(round(float(val), 3))
-                except Exception:
-                    head_values.append(0.0)
-            previews.append({
-                "chunk_id": i,
-                "values": head_values
-            })
+            
+        for i, embedding in enumerate(self.embeddings[:3]):  # Show only first 3 chunks
+            try:
+                # Ensure numeric and round for display
+                head_values = []
+                for val in embedding[:max_values]:
+                    try:
+                        head_values.append(round(float(val), 4))
+                    except (ValueError, TypeError):
+                        head_values.append(0.0)
+                        
+                previews.append({
+                    "chunk_id": i,
+                    "values": head_values
+                })
+            except Exception as e:
+                logger.error(f"Error building preview for embedding {i}: {e}")
+                continue
+                
         return previews
     
     def get_educational_explanation(self, step: str) -> Dict[str, str]:
@@ -225,19 +351,35 @@ Please provide a comprehensive answer based on the retrieved information. If the
         """
         Get a summary of the entire RAG pipeline for educational purposes
         """
-        return {
-            "total_chunks": len(self.chunks),
-            "chunk_size_avg": np.mean([chunk["word_count"] for chunk in self.chunks]) if self.chunks else 0,
-            "embeddings_generated": len(self.embeddings),
-            "embedding_dimension": len(self.embeddings[0]) if self.embeddings else 0,
-            "embedding_previews": self._build_embedding_previews(),
-            "pipeline_steps": [
-                "Document Upload & Preprocessing",
-                "Text Chunking with Overlap",
-                "Embedding Generation",
-                "Query Processing",
-                "Semantic Retrieval",
-                "Context Assembly",
-                "LLM Response Generation"
-            ]
-        } 
+        try:
+            embedding_dimension = len(self.embeddings[0]) if self.embeddings else 0
+            chunk_size_avg = np.mean([chunk["word_count"] for chunk in self.chunks]) if self.chunks else 0
+            
+            return {
+                "total_chunks": len(self.chunks),
+                "chunk_size_avg": float(chunk_size_avg),
+                "embeddings_generated": len(self.embeddings),
+                "embedding_dimension": embedding_dimension,
+                "embedding_method": "OpenAI" if self.use_openai else "TF-IDF",
+                "embedding_previews": self._build_embedding_previews(),
+                "pipeline_steps": [
+                    "Document Upload & Preprocessing",
+                    "Text Chunking with Overlap",
+                    "Embedding Generation",
+                    "Query Processing",
+                    "Semantic Retrieval",
+                    "Context Assembly",
+                    "LLM Response Generation"
+                ]
+            }
+        except Exception as e:
+            logger.error(f"Error generating pipeline summary: {e}")
+            return {
+                "total_chunks": len(self.chunks),
+                "chunk_size_avg": 0,
+                "embeddings_generated": len(self.embeddings),
+                "embedding_dimension": 0,
+                "embedding_method": "Unknown",
+                "embedding_previews": [],
+                "pipeline_steps": []
+            }
