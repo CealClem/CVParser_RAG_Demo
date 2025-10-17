@@ -10,3 +10,5 @@ requests>=2.31.0
 langchain-community>=0.0.10
 gunicorn>=21.2.0
 scaleway>=0.0.1
+PyPDF2==3.0.1
+python-docx==0.8.11
